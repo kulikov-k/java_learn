@@ -5,7 +5,7 @@ import java.io.IOException;
 /*Напишите метод, который составит строку, состоящую из 100 повторений слова TEST и метод,
 который запишет эту строку в простой текстовый файл, обработайте исключения.
 */
-//разбо решения задачи
+//разбор решения задачи
 public class t4 {
     public static void main(String[] args) {
         String testString = buildTestString();
