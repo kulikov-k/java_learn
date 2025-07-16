@@ -7,6 +7,6 @@ public class dz_3 {
         System.out.print("Введите Ваше имя: ");
         String name = scanner.nextLine();
         scanner.close();
-        System.out.println("Отлично," + name);
+        System.out.println("Привет," + name);
     }
 }
