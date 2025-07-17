@@ -6,40 +6,47 @@
 
 import java.util.Random;
 
-public class dz_3_1 {
-    public static void main(String[] args) {
-        int k = 0;
-        int n = 1;
-        int b = 2;
-        String d;
+public class dz_3_1{
+    public static void main(String[] args){
+        String k = "камень";
+        String n = "ножницы";
+        String b = "бумага";
+
         Random r = new Random();
         int v = r.nextInt(3);
         int p = r.nextInt(3);
 
-        if (v == 1||p==1) {
-            d = "ножницы";
+        String vSet;
+        String pSet;
+
+        // выбор Вася
+        if (v == 0) {
+            vSet = k;
+        } else if (v == 1) {
+            vSet = n;
+        } else {
+            vSet = b;
         }
-            if(v == 2||p==2)
-            {
-                d= "бумага";
-            }
-        else
-        {
-            d = "камень"; // или оставить null
+        // выбор Петя
+        if (p == 0) {
+            pSet = k;
+        } else if (p == 1) {
+            pSet = n;
+        } else {
+            pSet = b;
         }
-        System.out.println("У Васи - " + v +" "+ d);
-        System.out.println("У Пети - " + p +" "+ d);
-        if (v == p)
-        {
+        System.out.println("У Васи - " + v + " " + vSet);
+        System.out.println("У Пети - " + p + " " + pSet);
+
+        // определение результата игры
+        if (v == p) {
             System.out.println("Ничья");
-        } else if (v == 0 & p == 1) {
-            System.out.println("Вася");
-        } else if (v == 1 & p == 0) {
-            System.out.println("Петя");
-        } else if (v == 2 & p == 0) {
-            System.out.println("Вася");
-        } else if (v == 2 & p == 1) {
-            System.out.println("Петя");
+        } else if ((v == 0 && p == 1) ||       // камень > ножницы
+                   (v == 1 && p == 2) ||       // ножницы > бумага
+                   (v == 2 && p == 0)) {       // бумага > камень
+            System.out.println("Победил Вася");
+        } else {
+            System.out.println("Победил Петя");
         }
     }
 }
