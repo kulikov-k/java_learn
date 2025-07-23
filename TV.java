@@ -1,5 +1,4 @@
     public class TV {
-        // Приватные поля
         private String производитель;
         private int размер; // в дюймах
         private boolean включен;
@@ -11,7 +10,7 @@
             this.включен = false; // по умолчанию выключен
         }
 
-        // Геттеры и сеттеры (свойства)
+        // свойства
         public String getПроизводитель() {
             return производитель;
         }
