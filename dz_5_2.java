@@ -24,7 +24,7 @@ public class dz_5_2 {
         System.out.println("Введено " + input.length() + " символа(ов)");
         scanner.close();
     int c = 0;
-for (int i=0; i <= input.length() - 5; i++){
+        for (int i=0; i <= input.length() - 5; i++){
             if (input.charAt(i) == '>' &&
                     input.charAt(i+1) == '>' &&
                     input.charAt(i+2) == '-' &&
@@ -32,6 +32,7 @@ for (int i=0; i <= input.length() - 5; i++){
                     input.charAt(i+4) == '>') {
                 c++;
                 i += 4; // Пропускаем проверенные символы
+                System.out.println(" >>--> ");
             }
             // Проверка стрелки <--<<
             else if (input.charAt(i) == '<' &&
@@ -41,6 +42,7 @@ for (int i=0; i <= input.length() - 5; i++){
                     input.charAt(i+4) == '<') {
                 c++;
                 i += 4; // Пропускаем проверенные символы
+                System.out.println(" <--<< ");
             }
         }
     System.out.println("Найдено заданных последовательностей "+ c);
