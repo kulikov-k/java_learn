@@ -21,7 +21,6 @@ public class dz_5_2 {
             System.out.println(input.length() + " это слишком много букв, максимум 106 символов.");
             return;
         }
-        System.out.println("Введено " + input.length() + " символа(ов)");
         scanner.close();
     int c = 0;
         for (int i=0; i <= input.length() - 5; i++){
@@ -32,7 +31,6 @@ public class dz_5_2 {
                     input.charAt(i+4) == '>') {
                 c++;
                 i += 4; // Пропускаем проверенные символы
-                System.out.println(" >>--> ");
             }
             // Проверка стрелки <--<<
             else if (input.charAt(i) == '<' &&
@@ -41,10 +39,9 @@ public class dz_5_2 {
                     input.charAt(i+3) == '<' &&
                     input.charAt(i+4) == '<') {
                 c++;
-                i += 4; // Пропускаем проверенные символы
-                System.out.println(" <--<< ");
+                i += 4;
             }
         }
-    System.out.println("Найдено заданных последовательностей "+ c);
+    System.out.println( "Введено " + input.length() + " символа(ов). Найдено заданных последовательностей "+ c);
     }
 }
