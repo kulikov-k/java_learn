@@ -1,3 +1,5 @@
+package dz_3;
+
 import java.util.Scanner;
 
 public class dz_3 {

@@ -1,3 +1,5 @@
+package dz_4_TV;
+
 public class App {
     public static void main(String[] args) {
         // Создаем экземпляры телевизоров
