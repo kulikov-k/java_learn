@@ -106,13 +106,11 @@ public class App {
 
             // Ввод продуктов
             System.out.println("Введите продукты в формате: \"Название = Цена; Название2 = Цена2\"");
-            List<Product> products = parseProducts(scanner.nextLine());
+                   List<Product> products = parseProducts(scanner.nextLine());
 
             // Процесс покупок
-            System.out.println("Доступные команды:");
-            System.out.println("купить [Имя] [Продукт] - совершить покупку");
-            System.out.println("итог - показать результаты");
-            System.out.println("END - завершить программу");
+            System.out.println("Введите покупки в формате: \"Имя - Продукт\" или команду END для завершения");
+
 
             while (true) {
                 System.out.print("> ");
@@ -120,14 +118,16 @@ public class App {
 
                 if (input.equalsIgnoreCase("END")) {
                     break;
-                } else if (input.equalsIgnoreCase("итог")) {
-                    people.forEach(p -> System.out.println(p.getPurchases()));
-                } else if (input.toLowerCase().startsWith("купить ")) {
+                } else if (input.contains("-")) {
                     processPurchase(input, people, products);
                 } else {
-                    System.out.println("Неизвестная команда");
+                    System.out.println("Неизвестная команда. Используйте формат: \"Имя - Продукт\"");
                 }
             }
+
+            // Вывод итогов
+            System.out.println("\nРезультаты покупок:");
+            people.forEach(p -> System.out.println(p.getPurchases()));
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         } finally {
@@ -144,7 +144,9 @@ public class App {
                     if (parts.length != 2) {
                         throw new IllegalArgumentException("Неверный формат ввода покупателей");
                     }
-                    return new Person(parts[0].trim(), Double.parseDouble(parts[1].trim()));
+                    String name = parts[0].trim();
+                    double money = Double.parseDouble(parts[1].trim());
+                    return new Person(name, money);
                 })
                 .collect(Collectors.toList());
     }
@@ -158,20 +160,22 @@ public class App {
                     if (parts.length != 2) {
                         throw new IllegalArgumentException("Неверный формат ввода продуктов");
                     }
-                    return new Product(parts[0].trim(), Double.parseDouble(parts[1].trim()));
+                    String name = parts[0].trim();
+                    double cost = Double.parseDouble(parts[1].trim());
+                    return new Product(name, cost);
                 })
                 .collect(Collectors.toList());
     }
 
     private static void processPurchase(String input, List<Person> people, List<Product> products) {
-        String[] parts = input.split("\\s+");
-        if (parts.length != 3) {
-            System.out.println("Неверный формат команды покупки");
+        String[] parts = input.split("-");
+        if (parts.length != 2) {
+            System.out.println("Неверный формат команды покупки. Используйте: \"Имя - Продукт\"");
             return;
         }
 
-        String personName = parts[1];
-        String productName = parts[2];
+        String personName = parts[0].trim();
+        String productName = parts[1].trim();
 
         Optional<Person> personOpt = people.stream()
                 .filter(p -> p.getName().equalsIgnoreCase(personName))
@@ -181,8 +185,13 @@ public class App {
                 .filter(p -> p.getName().equalsIgnoreCase(productName))
                 .findFirst();
 
-        if (!personOpt.isPresent() || !productOpt.isPresent()) {
-            System.out.println("Покупатель или продукт не найден");
+        if (!personOpt.isPresent()) {
+            System.out.println("Покупатель '" + personName + "' не найден");
+            return;
+        }
+
+        if (!productOpt.isPresent()) {
+            System.out.println("Продукт '" + productName + "' не найден");
             return;
         }
 
