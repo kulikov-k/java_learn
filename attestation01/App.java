@@ -1,13 +1,16 @@
 package attestation01;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// Базовый класс Product
 class Product {
     private String name;
-    private double cost;
+    private BigDecimal cost;
 
-    public Product(String name, double cost) {
+    public Product(String name, BigDecimal cost) {
         setName(name);
         setCost(cost);
     }
@@ -23,15 +26,20 @@ class Product {
         this.name = name;
     }
 
-    public double getCost() {
+    public BigDecimal getCost() {
         return cost;
     }
 
-    public void setCost(double cost) {
-        if (cost < 0) {
+    public void setCost(BigDecimal cost) {
+        if (cost.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Стоимость продукта не может быть отрицательной");
         }
         this.cost = cost;
+    }
+
+    // Метод для получения актуальной цены (будет переопределен в DiscountProduct)
+    public BigDecimal getActualCost() {
+        return cost;
     }
 
     @Override
@@ -40,12 +48,74 @@ class Product {
     }
 }
 
+// Класс для скидочных продуктов (наследуется от Product)
+class DiscountProduct extends Product {
+    private BigDecimal discount;
+    private LocalDate discountEndDate;
+
+    public DiscountProduct(String name, BigDecimal cost, BigDecimal discount, LocalDate discountEndDate) {
+        super(name, cost);
+        setDiscount(discount);
+        setDiscountEndDate(discountEndDate);
+    }
+
+    public BigDecimal getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(BigDecimal discount) {
+        if (discount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Скидка не может быть отрицательной");
+        }
+        if (discount.compareTo(getCost()) > 0) {
+            throw new IllegalArgumentException("Скидка не может быть больше стоимости товара");
+        }
+        this.discount = discount;
+    }
+
+    public LocalDate getDiscountEndDate() {
+        return discountEndDate;
+    }
+
+    public void setDiscountEndDate(LocalDate discountEndDate) {
+        if (discountEndDate == null) {
+            throw new IllegalArgumentException("Дата окончания скидки не может быть пустым");
+        }
+        this.discountEndDate = discountEndDate;
+    }
+
+    // Переопределяем метод для получения актуальной цены
+    @Override
+    public BigDecimal getActualCost() {
+        LocalDate today = LocalDate.now();
+        if (today.isBefore(discountEndDate) || today.isEqual(discountEndDate)) {
+            // Скидка действует
+            return getCost().subtract(discount);
+        } else {
+            // Скидка истекла - возвращаем обычную цену
+            return getCost();
+        }
+    }
+
+    @Override
+    public String toString() {
+        LocalDate today = LocalDate.now();
+        if (today.isBefore(discountEndDate) || today.isEqual(discountEndDate)) {
+            return String.format("%s (%.2f руб.) [СКИДКА: %.2f руб., действует до %s]",
+                    getName(), getActualCost(), discount, discountEndDate);
+        } else {
+            return String.format("%s (%.2f руб.) [скидка истекла %s]",
+                    getName(), getActualCost(), discountEndDate);
+        }
+    }
+}
+
 class Person {
     private String name;
-    private double money;
+    private BigDecimal money;
     private List<Product> bag;
 
-    public Person(String name, double money) {
+    public Person(String name, BigDecimal money) {
         setName(name);
         setMoney(money);
         this.bag = new ArrayList<>();
@@ -65,21 +135,22 @@ class Person {
         this.name = name;
     }
 
-    public double getMoney() {
+    public BigDecimal getMoney() {
         return money;
     }
 
-    public void setMoney(double money) {
-        if (money < 0) {
+    public void setMoney(BigDecimal money) {
+        if (money.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Сумма денег не может быть отрицательной");
         }
         this.money = money;
     }
 
     public boolean buyProduct(Product product) {
-        if (product.getCost() <= money) {
+        BigDecimal actualCost = product.getActualCost();
+        if (actualCost.compareTo(money) <= 0) {
             bag.add(product);
-            money -= product.getCost();
+            money = money.subtract(actualCost);
             return true;
         }
         return false;
@@ -106,11 +177,14 @@ public class App {
 
             // Ввод продуктов
             System.out.println("Введите продукты в формате: \"Название = Цена; Название2 = Цена2\"");
-                   List<Product> products = parseProducts(scanner.nextLine());
+            System.out.println("Для скидочных товаров используйте: \"Название = Цена | Скидка | ГГГГ-ММ-ДД\"");
+            List<Product> products = parseProducts(scanner.nextLine());
 
             // Процесс покупок
-            System.out.println("Введите покупки в формате: \"Имя - Продукт\" или команду END для завершения");
-
+            System.out.println("\nНачинаем покупки! Введите команды:");
+            System.out.println("'ИмяПокупателя - НазваниеТовара' - чтобы совершить покупку");
+            System.out.println("'END' - чтобы завершить и показать результаты");
+            System.out.println("----------------------------------------");
 
             while (true) {
                 System.out.print("> ");
@@ -128,6 +202,7 @@ public class App {
             // Вывод итогов
             System.out.println("\nРезультаты покупок:");
             people.forEach(p -> System.out.println(p.getPurchases()));
+
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         } finally {
@@ -145,7 +220,7 @@ public class App {
                         throw new IllegalArgumentException("Неверный формат ввода покупателей");
                     }
                     String name = parts[0].trim();
-                    double money = Double.parseDouble(parts[1].trim());
+                    BigDecimal money = new BigDecimal(parts[1].trim());
                     return new Person(name, money);
                 })
                 .collect(Collectors.toList());
@@ -156,13 +231,34 @@ public class App {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(s -> {
-                    String[] parts = s.split("=");
-                    if (parts.length != 2) {
-                        throw new IllegalArgumentException("Неверный формат ввода продуктов");
+                    if (s.contains("|")) {
+                        // Это скидочный продукт
+                        String[] mainParts = s.split("\\|");
+                        if (mainParts.length != 3) {
+                            throw new IllegalArgumentException("Неверный формат скидочного продукта");
+                        }
+
+                        String[] nameCostParts = mainParts[0].split("=");
+                        if (nameCostParts.length != 2) {
+                            throw new IllegalArgumentException("Неверный формат названия и цены скидочного продукта");
+                        }
+
+                        String name = nameCostParts[0].trim();
+                        BigDecimal cost = new BigDecimal(nameCostParts[1].trim());
+                        BigDecimal discount = new BigDecimal(mainParts[1].trim());
+                        LocalDate endDate = LocalDate.parse(mainParts[2].trim());
+
+                        return new DiscountProduct(name, cost, discount, endDate);
+                    } else {
+                        // Это обычный продукт
+                        String[] parts = s.split("=");
+                        if (parts.length != 2) {
+                            throw new IllegalArgumentException("Неверный формат ввода продуктов");
+                        }
+                        String name = parts[0].trim();
+                        BigDecimal cost = new BigDecimal(parts[1].trim());
+                        return new Product(name, cost);
                     }
-                    String name = parts[0].trim();
-                    double cost = Double.parseDouble(parts[1].trim());
-                    return new Product(name, cost);
                 })
                 .collect(Collectors.toList());
     }
@@ -199,9 +295,11 @@ public class App {
         Product product = productOpt.get();
 
         if (person.buyProduct(product)) {
-            System.out.printf("%s купил %s%n", person.getName(), product.getName());
+            System.out.printf("%s купил %s за %.2f руб.%n",
+                    person.getName(), product.getName(), product.getActualCost());
         } else {
-            System.out.printf("%s не может позволить себе %s%n", person.getName(), product.getName());
+            System.out.printf("%s не может позволить себе %s (нужно: %.2f руб., есть: %.2f руб.)%n",
+                    person.getName(), product.getName(), product.getActualCost(), person.getMoney());
         }
     }
 }
